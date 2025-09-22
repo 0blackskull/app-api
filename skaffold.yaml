@@ -1,0 +1,27 @@
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: ask-stellar-backend
+build:
+  artifacts:
+    - image: backend
+      context: .
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  kustomize:
+    paths:
+      - deployment/overlays/dev
+profiles:
+  - name: dev
+    manifests:
+      kustomize:
+        paths:
+          - deployment/overlays/dev
+  - name: prod
+    manifests:
+      kustomize:
+        paths:
+          - deployment/overlays/prod
+deploy:
+  kubectl: {} 

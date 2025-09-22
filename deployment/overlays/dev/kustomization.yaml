@@ -1,0 +1,19 @@
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - configmap.yaml
+  - storage.yaml
+  - postgres.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: backend-api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: backend 

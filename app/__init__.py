@@ -1,0 +1,1 @@
+# FastAPI Firebase Auth Application 

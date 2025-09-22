@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-api-ingress
+  annotations:
+    # For AWS ALB Ingress Controller
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/ssl-certificate: arn:aws:acm:ap-south-1:461024279936:certificate/854f69c7-5ea6-4e23-bee2-918a9efccedc
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/subnets: subnet-00d920e243573c740,subnet-0c240e3fefe97f7c1,subnet-0d3f0b34ed9450695
+    # alb.ingress.kubernetes.io/scheme: internet-facing
+    # For GKE, use: kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+  - host: app.astroyaar.co.in
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-api
+            port:
+              number: 8000

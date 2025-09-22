@@ -47,3 +47,5 @@ firebase-adminsdk-fbsvc@ask-stellar.iam.gserviceaccount.com.json
 .python-version
 
 ephe/
+scripts/migrate_to_lightsail.sh
+containers.json

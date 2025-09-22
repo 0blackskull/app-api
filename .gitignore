@@ -45,3 +45,5 @@ logs/
 
 firebase-adminsdk-fbsvc@ask-stellar.iam.gserviceaccount.com.json
 .python-version
+
+ephe/

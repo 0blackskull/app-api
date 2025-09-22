@@ -1,0 +1,197 @@
+# Ask Stellar Backend - Cursor MDC
+
+## Project Overview
+Ask Stellar is a Vedic astrology backend API that provides astrological calculations, compatibility analysis, and user management. The application uses FastAPI, SQLAlchemy, and integrates with the Jhora astrology library for precise planetary calculations.
+
+## Architecture
+
+### Core Technologies
+- **FastAPI**: Modern, fast web framework for building APIs
+- **SQLAlchemy**: SQL toolkit and ORM for database operations
+- **PostgreSQL**: Primary database with String-based UUIDs for all ID fields
+- **Redis**: Caching layer for performance optimization
+- **Jhora**: Vedic astrology library for planetary calculations and charts
+
+### Database Design
+- **ID Strategy**: All database tables use `String` columns for ID fields (not UUID or Integer)
+- **Foreign Keys**: Consistent use of String-based foreign key relationships
+- **Migrations**: Alembic-based migrations with comprehensive schema management
+
+## Key Components
+
+### 1. Models (`app/models/`)
+All models inherit from `Base` and use String-based IDs:
+- **User**: Core user entity with astrological birth data
+- **Partner**: User's partners for compatibility analysis
+- **Compatibility**: Stored compatibility results between users/partners
+- **ChatThread**: Conversation threads with participant management
+- **Message**: Chat messages within threads
+- **FriendRequest/Friendship**: Social networking functionality
+- **Device**: FCM token management for push notifications
+- **Payment**: Google Play billing integration
+
+### 2. Schemas (`app/schemas/`)
+Pydantic models for API request/response validation:
+- **Type Consistency**: All ID fields use `str` type (not UUID)
+- **Validation**: Comprehensive input validation with custom validators
+- **Response Models**: Structured API responses with proper typing
+
+### 3. CRUD Operations (`app/crud/`)
+Database operation functions with consistent patterns:
+- **Type Safety**: All ID parameters expect `str` types
+- **Error Handling**: Proper exception handling and rollback
+- **Ownership Verification**: Security checks for user data access
+
+### 4. Routers (`app/routers/`)
+FastAPI route definitions organized by domain:
+- **Users**: User management, charts, compatibility
+- **Partners**: Partner CRUD operations
+- **Friends**: Social networking features
+- **Chat**: Streaming chat with astrology agent
+- **Threads**: Conversation thread management
+- **Payments**: Google Play billing webhooks
+
+### 5. Agents (`app/agents/`)
+AI-powered astrology analysis:
+- **AstrologyAgent**: Main agent for user interactions
+- **Tools**: Astrological calculation utilities
+- **Prompts**: LLM prompt templates for analysis
+
+### 6. LLM Integration (`app/llm/`)
+OpenAI integration for enhanced analysis:
+- **Client**: OpenAI API client with structured responses
+- **Schemas**: Pydantic models for LLM responses
+- **Prompts**: Specialized prompts for astrology analysis
+
+## Development Guidelines
+
+### Type Safety
+- **Database IDs**: Always use `str` type for ID fields
+- **FastAPI Parameters**: Use `UUID` for path parameters, convert to `str` for CRUD calls
+- **Schema Validation**: Ensure all schemas use consistent types
+- **Imports**: Imports should always be at the top of the files
+- **Commonly used methods**: A method which might be used elsewhere as well should be added in utility.
+- **Redundancy**: Never introduce redundancy, first check the code base if something similar exists.
+
+### Database Operations
+```python
+# Correct pattern for ID handling
+@router.get("/{partner_id}")
+async def get_partner(partner_id: UUID, db: Session):
+    # Convert UUID to string for database operations
+    partner = crud.get_partner(db, str(partner_id))
+```
+
+### Error Handling
+- Use proper HTTP status codes
+- Implement comprehensive logging
+- Handle database rollbacks on errors
+
+### Security
+- Verify user ownership for all operations
+- Implement proper authentication middleware
+- Validate input data thoroughly
+
+## Key Features
+
+### Astrological Calculations
+- **Divisional Charts**: D1-D60 chart generation
+- **Compatibility Analysis**: Ashtakoota-based compatibility scoring
+- **Panchanga**: Daily astrological calculations
+- **Transit Analysis**: Planetary movement analysis
+
+### User Management
+- **Profile Management**: Birth data, preferences, settings
+- **Social Features**: Friends, partners, compatibility reports
+- **Chat System**: AI-powered astrology conversations
+
+### Payment Integration
+- **Google Play Billing**: Subscription management
+- **Credit System**: Usage-based credit allocation
+- **Webhook Handling**: Real-time payment processing
+
+## Common Patterns
+
+### 1. CRUD Function Signature
+```python
+def get_entity(db: Session, entity_id: str) -> Optional[Entity]:
+    return db.query(Entity).filter(Entity.id == entity_id).first()
+```
+
+### 2. Router Endpoint Pattern
+```python
+@router.get("/{entity_id}")
+async def get_entity(
+    entity_id: UUID = Path(...),  # FastAPI receives UUID
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Convert to string for database operations
+    entity = crud.get_entity(db, str(entity_id))
+    # Verify ownership
+    if entity.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    return entity
+```
+
+### 3. Schema Definition
+```python
+class EntityResponse(BaseModel):
+    id: str  # Always use str for database IDs
+    name: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+```
+
+## Testing & Development
+
+### Database Setup
+- Use Docker Compose for local development
+- Run migrations with Alembic
+- Seed data with provided scripts
+
+### API Testing
+- Swagger docs available at `/docs` in debug mode
+- No tests needed
+- Error scenario validation
+
+### Performance
+- Redis caching for expensive calculations
+- Database connection pooling
+- Rate limiting on chat endpoints
+
+## File Organization
+
+```
+app/
+├── models/          # SQLAlchemy models
+├── schemas/         # Pydantic schemas
+├── crud/           # Database operations
+├── routers/        # API endpoints
+├── agents/         # AI astrology agents
+├── llm/            # OpenAI integration
+├── services/       # Business logic
+├── utils/          # Helper functions
+├── middleware/     # Request processing
+└── config.py       # Configuration management
+```
+
+## Important Notes
+
+1. **ID Type Consistency**: All database operations expect String IDs, not UUIDs
+2. **Authentication**: Firebase-based authentication with middleware
+3. **Caching**: Redis-based caching for astrological calculations
+4. **Error Handling**: Comprehensive error handling with proper logging
+5. **Security**: User ownership verification for all data operations
+6. **Changes**: Just make the changes what has been asked and nothing else
+7. **Clarify requirements**: If there is anything not clear, make sure to ask clarification questions before making any changes
+8. **Context understanding**: always first generate a full understanding of the code relevant to user's query, before making any changes
+
+## Development Workflow
+
+1. **Schema Changes**: Update models, schemas, and CRUD functions together
+2. **Type Safety**: Ensure consistent ID type usage throughout
+3. **Testing**: Test all endpoints with proper error scenarios
+4. **Documentation**: Update API docs and this MDC as needed
